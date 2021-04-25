@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch</title>
+</head>
+<body>
+    <h1>Users</h1>
+    <table id="table"></table>
+    <button id="fetchButton">Fetch data</button>
+    
+    <h2>Add user</h2>
+    <table>
+        <tr>
+            <td>
+                <label for="nameText">Name</label>
+            </td>
+            <td>
+                <input id="nameText" type="text"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="numberText">Age</label>
+            </td>
+            <td>
+                <input id="numberText" type="number"/>
+            </td>
+        </tr>
+    </table>
+    <button id="postButton">Post data</button>
+    
+    <script>
+        // Using the fetch api, get the items from the api and then put it in a list
+        const list = document.getElementById('list')
+        const table = document.getElementById('table')
+        const fetchButton = document.getElementById('fetchButton')
+        fetchButton.addEventListener('click', getData)
+        
+        const nameText = document.getElementById('nameText')
+        const numberText = document.getElementById('numberText')
+        const postButton = document.getElementById('postButton')
+        postButton.addEventListener('click', postData)
+        
+        // Fetch api - Promise returns a response, then the content
+        async function getData(){
+            table.innerHTML = ''
+            await fetch('http://localhost:3000/users')
+            .then(res => res.json())
+            .then(data => {
+                // Make a table
+                let nameHeader = document.createElement('th')
+                nameHeader.innerText = 'Name'
+                
+                let ageHeader = document.createElement('th')
+                ageHeader.innerText = 'Age'
+                
+                let rowHeader = document.createElement('tr')
+                rowHeader.appendChild(nameHeader)
+                rowHeader.appendChild(ageHeader)
+                
+                table.appendChild(rowHeader)
+                
+                data.map(user => {
+                    let row = document.createElement('tr')
+                    
+                    let nameData = document.createElement('td')
+                    nameData.innerText = user.name
+                    
+                    let ageData = document.createElement('td')
+                    ageData.innerText = user.age
+                    
+                    row.appendChild(nameData)
+                    row.appendChild(ageData)
+                    
+                    table.appendChild(row)
+                })
+            })
+        }
+        getData()
+        
+        // POST data
+        async function postData() {
+            // Check if fields are empty
+            if (nameText.value && numberText.value){
+                // Prep data to be converted into json
+                const data = { name: nameText.value, age: numberText.value }
+                await fetch(
+                'http://localhost:3000/users',
+                {method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(() => getData())
+            .catch(() => alert("Failed to send data"))
+        } else {
+            alert("Fields are empty")
+        }
+    }
+</script>
+</body>
+</html>
