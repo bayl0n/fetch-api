@@ -11,7 +11,7 @@
     <table id="table"></table>
     <button id="fetchButton">Fetch data</button>
     
-    <h2>Add user</h2>
+    <h2>Add User</h2>
     <table>
         <tr>
             <td>
@@ -30,7 +30,19 @@
             </td>
         </tr>
     </table>
-    <button id="postButton">Post data</button>
+    <button id="postButton">Add user</button>
+    <h2>Delete User</h2>
+    <table>
+        <tr>
+            <td>
+                <label for="deleteText">User ID</label>
+            </td>
+            <td>
+                <input id="deleteText" type="number"/>
+            </td>
+        </tr>
+    </table>
+    <button id="deleteButton">Delete user</button>
     
     <script>
         // Using the fetch api, get the items from the api and then put it in a list
@@ -43,6 +55,10 @@
         const numberText = document.getElementById('numberText')
         const postButton = document.getElementById('postButton')
         postButton.addEventListener('click', postData)
+
+        const deleteText = document.getElementById('deleteText')
+        const deleteButton = document.getElementById('deleteButton')
+        deleteButton.addEventListener('click', deleteData)
         
         // Fetch api - Promise returns a response, then the content
         async function getData(){
@@ -50,7 +66,11 @@
             await fetch('http://localhost:3000/users')
             .then(res => res.json())
             .then(data => {
+                if(data.length <= 0) return table.innerHTML = '<p>No users found</p>'
                 // Make a table
+                let idHeader = document.createElement('th')
+                idHeader.innerText = 'ID'
+
                 let nameHeader = document.createElement('th')
                 nameHeader.innerText = 'Name'
                 
@@ -58,6 +78,7 @@
                 ageHeader.innerText = 'Age'
                 
                 let rowHeader = document.createElement('tr')
+                rowHeader.appendChild(idHeader)
                 rowHeader.appendChild(nameHeader)
                 rowHeader.appendChild(ageHeader)
                 
@@ -66,12 +87,16 @@
                 data.map(user => {
                     let row = document.createElement('tr')
                     
+                    let idData = document.createElement('td')
+                    idData.innerText = user.id
+
                     let nameData = document.createElement('td')
                     nameData.innerText = user.name
                     
                     let ageData = document.createElement('td')
                     ageData.innerText = user.age
                     
+                    row.appendChild(idData)
                     row.appendChild(nameData)
                     row.appendChild(ageData)
                     
@@ -79,7 +104,6 @@
                 })
             })
         }
-        getData()
         
         // POST data
         async function postData() {
@@ -88,16 +112,39 @@
                 // Prep data to be converted into json
                 const data = { name: nameText.value, age: numberText.value }
                 await fetch(
-                'http://localhost:3000/users',
-                {method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            })
-            .then(() => getData())
-            .catch(() => alert("Failed to send data"))
-        } else {
-            alert("Fields are empty")
+                    'http://localhost:3000/users',
+                    {method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                })
+                .then(res => {
+                    if (res.status === 409) return alert('User already exists')
+                    getData()
+                })
+                .catch(() => alert('Failed to send user'))
+            } else {
+                alert('Fields are empty')
+            }
         }
-    }
+
+        // DELETE data
+        async function deleteData() {
+            if (deleteText.value) {
+                await fetch(
+                    `http://localhost:3000/users/${deleteText.value}`,
+                    { method: 'DELETE' }
+                )
+                .then(res => {
+                    if (res.status === 404) return alert('User does not exist')
+                    getData()
+                })
+                .catch(() => alert('Failed to delete user'))
+            } else {
+                alert ('Fields are empty')
+            }
+        }
+        
+        // Fetch the data on page load
+        getData()
 </script>
 </body>
 </html>
