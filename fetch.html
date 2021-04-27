@@ -31,6 +31,7 @@
         </tr>
     </table>
     <button id="postButton">Add user</button>
+
     <h2>Delete User</h2>
     <table>
         <tr>
@@ -43,8 +44,44 @@
         </tr>
     </table>
     <button id="deleteButton">Delete user</button>
+
+    <h2>Edit User</h2>
+    <table>
+        <tr>
+            <th colspan="2">Select user to be edited</th>
+        </tr>
+        <tr>
+            <td>
+                <label for="idEditText">User ID</label>
+            </td>
+            <td>
+                <input id="idEditText" type="number"/>
+            </td>
+        </tr>
+        <tr>
+            <th colspan="2">Enter new details</th>
+        </tr>
+        <tr>
+            <td>
+                <label for="nameEditText">Name</label>
+            </td>
+            <td>
+                <input id="nameEditText" type="text"/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="numberEditText">Age</label>
+            </td>
+            <td>
+                <input id="numberEditText" type="number"/>
+            </td>
+        </tr>
+    </table>
+    <button id="editButton">Edit user</button>
     
     <script>
+        let retrievedData = []
         // Using the fetch api, get the items from the api and then put it in a list
         const list = document.getElementById('list')
         const table = document.getElementById('table')
@@ -59,6 +96,13 @@
         const deleteText = document.getElementById('deleteText')
         const deleteButton = document.getElementById('deleteButton')
         deleteButton.addEventListener('click', deleteData)
+
+        const idEditText = document.getElementById('idEditText')
+        const nameEditText = document.getElementById('nameEditText')
+        const numberEditText = document.getElementById('numberEditText')
+        const editButton = document.getElementById('editButton')
+        editButton.addEventListener('click', patchData)
+        idEditText.addEventListener('input', autoFillDetails)
         
         // Fetch api - Promise returns a response, then the content
         async function getData(){
@@ -66,6 +110,8 @@
             await fetch('http://localhost:3000/users')
             .then(res => res.json())
             .then(data => {
+                retrievedData = data
+                console.log(retrievedData)
                 if(data.length <= 0) return table.innerHTML = '<p>No users found</p>'
                 // Make a table
                 let idHeader = document.createElement('th')
@@ -127,6 +173,23 @@
         }
 
         // DELETE data
+        async function editData() {
+            if (deleteText.value) {
+                await fetch(
+                    `http://localhost:3000/users/${deleteText.value}`,
+                    { method: 'DELETE' }
+                )
+                .then(res => {
+                    if (res.status === 404) return alert('User does not exist')
+                    getData()
+                })
+                .catch(() => alert('Failed to delete user'))
+            } else {
+                alert ('Fields are empty')
+            }
+        }
+
+        // DELETE data
         async function deleteData() {
             if (deleteText.value) {
                 await fetch(
@@ -140,6 +203,47 @@
                 .catch(() => alert('Failed to delete user'))
             } else {
                 alert ('Fields are empty')
+            }
+        }
+
+        // Patch data
+        async function patchData() {
+            // Check if fields are empty
+            if (idEditText.value){
+                if (nameEditText.value && numberEditText.value) {
+                    // Prep data to be converted into json
+                    const data = { name: nameEditText.value, age: numberEditText.value }
+                    await fetch(
+                        `http://localhost:3000/users/${idEditText.value}`,
+                        {method: 'PATCH', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(data)
+                    })
+                    .then(res => {
+                        if (res.status === 404) return alert('Couldn\'t find user')
+                        getData()
+                    })
+                    .catch(() => alert('Failed to send user'))
+                } else {
+                    alert('Please enter all fields')
+                }
+            } else {
+                alert('Please select a user to be edited')
+            }
+        }
+
+        //Auto fills name and age based on edit id
+        function autoFillDetails() {
+            let userID = parseInt(idEditText.value)
+            try {
+                retrievedData.forEach(user => {
+                    if(user.id === userID) {
+                        nameEditText.value = retrievedData[userID].name
+                        numberEditText.value = retrievedData[userID].age
+                    }
+                })
+            } catch(error) {
+                nameEditText.value = ''
+                numberEditText.value = ''
             }
         }
         

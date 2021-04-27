@@ -57,7 +57,18 @@ app.delete('/users/:id', (req, res) => {
     res.sendStatus(200)
 })
 
-app.patch
+app.patch('/users/:id', (req, res) => {
+    const userID = parseInt(req.params.id)
+
+    // Check if the user.id is in the list
+    if (!list.some(user => user.id === userID)) return res.sendStatus(404)
+
+    // Edit the details of the user
+    list.forEach(user => {
+        if(user.id === userID) return Object.assign(user, { name: req.body.name, age: req.body.age })
+    })
+    res.sendStatus(200)
+})
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`)
