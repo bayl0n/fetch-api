@@ -1,7 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const app = express()
-const port = 3000
+const port = process.env.PORT || 8080
 
 // Middleware - Parse json files when header Content-type: application/json is used
 app.use(express.json())
