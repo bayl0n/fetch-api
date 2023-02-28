@@ -20,11 +20,6 @@ let list = [
         age: 18
     },
     {
-        id: 2,
-        name: 'Lindsay Cayas',
-        age: 20
-    },
-    {
         id: 3,
         name: 'Old Man',
         age: 89
